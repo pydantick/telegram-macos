@@ -257,7 +257,7 @@ private let _id_chat_automation = InputDataIdentifier("_id_chat_automation")
 private let _id_business_hours = InputDataIdentifier("_id_business_hours")
 private let _id_business_location = InputDataIdentifier("_id_business_location")
 
-private func editInfoEntries(state: EditInfoState, arguments: EditInfoControllerArguments, activeAccounts: [AccountWithInfo], privacy: AccountPrivacySettings?, updateState:@escaping ((EditInfoState)->EditInfoState)->Void) -> [InputDataEntry] {
+private func editInfoEntries(state: EditInfoState, arguments: EditInfoControllerArguments, privacy: AccountPrivacySettings?, updateState:@escaping ((EditInfoState)->EditInfoState)->Void) -> [InputDataEntry] {
     var entries:[InputDataEntry] = []
     
     var sectionId: Int32 = 0
@@ -375,15 +375,13 @@ private func editInfoEntries(state: EditInfoState, arguments: EditInfoController
     entries.append(.sectionId(sectionId, type: .normal))
     sectionId += 1
     
-    if activeAccounts.count < 3 {
-        entries.append(InputDataEntry.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_add_account, data: InputDataGeneralData(name: strings().editAccountAddAccount, color: theme.colors.accent, icon: nil, type: .none, viewType: .firstItem, action: {
-            arguments.addAccount()
-        })))
-        index += 1
-    }
+    entries.append(InputDataEntry.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_add_account, data: InputDataGeneralData(name: strings().editAccountAddAccount, color: theme.colors.accent, icon: nil, type: .none, viewType: .firstItem, action: {
+        arguments.addAccount()
+    })))
+    index += 1
    
     
-    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_logout, data: InputDataGeneralData(name: strings().editAccountLogout, color: theme.colors.redUI, icon: nil, type: .none, viewType: activeAccounts.count < 3 ? .lastItem : .singleItem, action: nil)))
+    entries.append(.general(sectionId: sectionId, index: index, value: .none, error: nil, identifier: _id_logout, data: InputDataGeneralData(name: strings().editAccountLogout, color: theme.colors.redUI, icon: nil, type: .none, viewType: .lastItem, action: nil)))
     index += 1
     
     
@@ -693,9 +691,9 @@ public func EditAccountInfoController<Context: AccountContextProtocol>(context: 
         f(SettingsNavigationHooks.shared.makeBusinessChatbotController(context))
     })
     
-    let controller = InputDataController(dataSignal: combineLatest(state.get() |> deliverOnPrepareQueue, appearanceSignal |> deliverOnPrepareQueue, context.sharedContext.activeAccountsWithInfo, context
+    let controller = InputDataController(dataSignal: combineLatest(state.get() |> deliverOnPrepareQueue, appearanceSignal |> deliverOnPrepareQueue, context
         .privacy) |> map {
-            editInfoEntries(state: $0.0, arguments: arguments, activeAccounts: $0.2.accounts, privacy: $0.3, updateState: updateState)
+            editInfoEntries(state: $0.0, arguments: arguments, privacy: $0.2, updateState: updateState)
     } |> map { InputDataSignalValue(entries: $0) }, title: strings().editAccountTitle, validateData: { data -> InputDataValidation in
         
         if let _ = data[_id_logout] {

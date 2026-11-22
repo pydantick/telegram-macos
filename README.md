@@ -1,3 +1,27 @@
+## Unofficial macOS multi-account fork
+
+The `feat/unlimited-accounts` branch removes the client-side connected-account cap
+from Settings, the account switcher, Edit Profile, the logout alternatives, and
+Settings search. Adding another account no longer depends on the number of
+connected accounts or their Premium status. This branch introduces no replacement
+numeric cap; practical capacity depends on available memory, disk and network.
+
+This is a source patch, not a tested app release. Build instructions are in
+[INSTALL.md](INSTALL.md). A full Xcode installation, the project's submodules and
+native dependencies, your own Telegram API credentials, and fork signing/bundle
+configuration are required for a usable personal build. Upstream download links
+below install the official app and do not include this patch.
+
+Validation: all five modified Swift files pass the Swift parser, and
+`git diff --check` passes. The complete app has not been built or run. Before using
+a build, verify adding a fourth non-Premium account and a fifth account through
+each entry point, switching between accounts (including a filtered switcher),
+notifications, and account persistence after restarting. Verify the add-account
+controls with VoiceOver. Existing account databases and authentication code are
+unchanged.
+
+---
+
 <div align="center">
   <img src="Telegram-Mac/Assets.xcassets/AppIcon.appiconset/Logo_1024.png"
       width="125" 

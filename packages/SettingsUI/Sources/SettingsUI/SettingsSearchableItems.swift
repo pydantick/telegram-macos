@@ -175,7 +175,7 @@ private func matchStringTokens(_ tokens: [ValueBoxKey], with other: [ValueBoxKey
 }
 
 
-private func profileSearchableItems<Context: AccountContextProtocol>(context: Context, canAddAccount: Bool) -> [SettingsSearchableItem<Context>] {
+private func profileSearchableItems<Context: AccountContextProtocol>(context: Context) -> [SettingsSearchableItem<Context>] {
     let icon: SettingsSearchableItemIcon = .profile
     
     let presentProfileSettings: (Context, @escaping  (SettingsSearchableItemPresentation, ViewController?) -> Void, EditSettingsEntryTag?) -> Void = { context, present, itemTag in
@@ -198,12 +198,10 @@ private func profileSearchableItems<Context: AccountContextProtocol>(context: Co
     items.append(SettingsSearchableItem(id: .profile(3), title: strings().editAccountUsername, alternate: synonyms(strings().settingsSearchSynonymsEditProfileUsername), icon: icon, breadcrumbs: [strings().editAccountTitle], present: { context, _, present in
         present(.push, UsernameController(context))
     }))
-    if canAddAccount {
-        items.append(SettingsSearchableItem(id: .profile(4), title: strings().editAccountAddAccount, alternate: synonyms(strings().settingsSearchSynonymsEditProfileAddAccount), icon: icon, breadcrumbs: [strings().editAccountTitle], present: { context, _, present in
-            let isTestingEnvironment = NSApp.currentEvent?.modifierFlags.contains(.command) == true
-            context.sharedContext.beginNewAuth(testingEnvironment: isTestingEnvironment)
-        }))
-    }
+    items.append(SettingsSearchableItem(id: .profile(4), title: strings().editAccountAddAccount, alternate: synonyms(strings().settingsSearchSynonymsEditProfileAddAccount), icon: icon, breadcrumbs: [strings().editAccountTitle], present: { context, _, present in
+        let isTestingEnvironment = NSApp.currentEvent?.modifierFlags.contains(.command) == true
+        context.sharedContext.beginNewAuth(testingEnvironment: isTestingEnvironment)
+    }))
     items.append(SettingsSearchableItem(id: .profile(5), title: strings().editAccountLogout, alternate: synonyms(strings().settingsSearchSynonymsEditProfileLogout), icon: icon, breadcrumbs: [strings().editAccountTitle], present: { context, navigationController, present in
         showModal(with: LogoutViewController(context: context, f: { controller in
             present(.push, controller)
@@ -561,12 +559,6 @@ private func languageSearchableItems<Context: AccountContextProtocol>(context: C
 
 func settingsSearchableItems<Context: AccountContextProtocol>(context: Context, archivedStickerPacks: Signal<[ArchivedStickerPackItem]?, NoError>, privacySettings: Signal<AccountPrivacySettings?, NoError>) -> Signal<[SettingsSearchableItem<Context>], NoError> {
     
-    let canAddAccount = activeAccountsAndPeers(context: context)
-        |> take(1)
-        |> map { accountsAndPeers -> Bool in
-            return accountsAndPeers.1.count + 1 < maximumNumberOfAccounts
-    }
-    
     let notificationSettings = context.account.postbox.preferencesView(keys: [PreferencesKeys.globalNotifications])
         |> take(1)
         |> map { view -> GlobalNotificationSettingsSet in
@@ -634,12 +626,12 @@ func settingsSearchableItems<Context: AccountContextProtocol>(context: Context, 
             }
     }
     
-    return combineLatest(canAddAccount, localizations, notificationSettings, archivedStickerPacks, proxyServers, privacySettings)
-        |> map { canAddAccount, localizations, notificationSettings, archivedStickerPacks, proxyServers, privacySettings in
+    return combineLatest(localizations, notificationSettings, archivedStickerPacks, proxyServers, privacySettings)
+        |> map { localizations, notificationSettings, archivedStickerPacks, proxyServers, privacySettings in
             
             var allItems: [SettingsSearchableItem<Context>] = []
             
-            let profileItems = profileSearchableItems(context: context, canAddAccount: canAddAccount)
+            let profileItems = profileSearchableItems(context: context)
             allItems.append(contentsOf: profileItems)
             
             
